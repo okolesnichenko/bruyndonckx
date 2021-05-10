@@ -52,7 +52,6 @@ class Bruyndonckx():
 
     def encode(self, message):
         binary_message = context.convert_to_binary(message)
-        print(binary_message)
         bruyndonckx_context.validate_message_len(self.height, self.width, binary_message)
         image_blocks = bruyndonckx_context.create_bruyndonckx_pixels_blocks(self.image)
         changed_image = bruyndonckx_context.encode_blocks(self.image, image_blocks, binary_message, self.deep_level)
