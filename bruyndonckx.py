@@ -30,22 +30,19 @@ def mse(imageA, imageB):
     return err
 
 def max_d(imageA, imageB):
-    err = np.sum(np.abs(np.subtract(imageA, imageB, dtype=np.float64))) / imageA.shape[0]
+    err = np.sum(np.abs(np.subtract(imageA, imageB, dtype=np.float64))) / (imageA.shape[0] * npc)
 
     return err
 
 
-def minkowski(imageA, imageB, p):
-    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** p)
-    err /= float(imageA.shape[0] * imageA.shape[1])
-
-    return err ** (1 / p)
+def psnr(imageA, imageB):
+    err = ((np.max(imageA.astype("float")) ** 2) / (np.sum((np.subtract(imageA, imageB, dtype=np.float64))) ** 2)) * float(imageA.shape[0] * imageA.shape[1])
+    return err
 
 
 class Bruyndonckx():
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.image = cv2.imread(file_path)
+    def __init__(self, im):
+        self.image = im
         self.height, self.width, self.nbchannels = self.image.shape
         self.size = self.width * self.height
         self.deep_level = 10 # Constant for Bruyndonckx encodeing
@@ -68,7 +65,8 @@ def main():
     args = docopt.docopt(__doc__, version="0.2")
     in_f = args["--in"]
     out_f = args["--out"]
-    steg = Bruyndonckx(in_f)
+    in_img = cv2.imread(in_f)
+    steg = Bruyndonckx(in_img)
     lossy_formats = ["jpeg", "jpg"]
 
     if args['encode']:
@@ -89,24 +87,21 @@ def main():
         print('Encoded:', context.convert_to_binary(orig_text))
         print("Decoded:", decoded_message[0:len(context.convert_to_binary(orig_text))])
 
-    # # Вычисление метрик
-    # image1 = cv2.imread('forest.png')
-    # image2 = cv2.imread('any2.png')
-    # mse_ressult = mse(image1, image2)
-    # print('MSE: ' + str(mse_ressult))
-    # max_d_result = max_d(image1, image2)
-    # print('MAXD: ' + str(max_d_result))
-    # minkowski_result = minkowski(image1, image2, 4)
-    # print('Minkowski: ' + str(minkowski_result))
+    # Вычисление метрик
+    image1 = cv2.imread('forest.png')
+    image2 = cv2.imread('any2.png')
+    mse_ressult = mse(image1, image2)
+    print('MSE: ' + str(mse_ressult))
+    max_d_result = max_d(image1, image2)
+    print('MAXD: ' + str(max_d_result))
+    psnr_result = psnr(image1, image2)
+    print('PSNR: ' + str(psnr_result))
 
-    # # Проверка устойчивости к аддитивному шуму
-    # img_after_gaus_gauss = random_noise(image2, mode='gaussian', seed=None, clip=True)
-    # steg = LSBSteg(img_after_gaus_gauss)
-    # raw = steg.decode_binary()
-    # with open('text_with_noise.txt', "wb") as f:
-    #     f.write(raw)
-
-
+    # Проверка устойчивости к аддитивному шуму
+    img_after_gaus_gauss = random_noise(image2, mode='gaussian', seed=None, clip=True)
+    steg = Bruyndonckx(img_after_gaus_gauss)
+    decoded_message = steg.decode()
+    print("Decoded gauss:", decoded_message[0:len(context.convert_to_binary(orig_text))])
 
 if __name__ == "__main__":
     main()
