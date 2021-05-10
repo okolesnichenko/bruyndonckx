@@ -36,8 +36,9 @@ def max_d(imageA, imageB):
 
 
 def psnr(imageA, imageB):
-    err = ((np.max(imageA.astype("float")) ** 2) / (np.sum((np.subtract(imageA, imageB, dtype=np.float64))) ** 2)) * float(imageA.shape[0] * imageA.shape[1])
-    return err
+    err = ((np.max(imageA.astype("float")) / float(imageA.shape[0])) ** 2) 
+    err /= (np.sum(np.subtract(imageA, imageB, dtype=np.float64)) ** 2)
+    return err * float(imageA.shape[1] * imageA.shape[1]) * npc
 
 
 class Bruyndonckx():
@@ -103,5 +104,6 @@ def main():
     decoded_message = steg.decode()
     print("Decoded gauss:", decoded_message[0:len(context.convert_to_binary(orig_text))])
 
+npc = 100
 if __name__ == "__main__":
     main()
